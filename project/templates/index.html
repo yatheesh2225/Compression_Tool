@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Compressor Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1e1e1e;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+            border-radius: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #35b3f7;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            font-weight: bold;
+            color: #b0b0b0;
+        }
+
+        input[type="file"] {
+            border: 1px solid #444;
+            padding: 8px;
+            border-radius: 4px;
+            background-color: #1e1e1e;
+            color: #ffffff;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #35b3f7;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #35b3f7;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #4caf50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>File Compressor Tool</h1>
+        <form id="compressForm" enctype="multipart/form-data">
+            <label for="inputFile">Choose a file to compress:</label>
+            <input type="file" id="inputFile" name="inputFile" accept="*/*" required>
+            <button type="submit">Compress File</button>
+        </form>
+
+        <form id="decompressForm" enctype="multipart/form-data">
+            <label for="compressedFile">Choose a file to decompress:</label>
+            <input type="file" id="compressedFile" name="compressedFile" accept=".zip" required>
+            <button type="submit">Decompress File</button>
+        </form>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('compressForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('inputFile');
+            if (!fileInput.files.length) return;
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/compress', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.blob();
+                const url = window.URL.createObjectURL(result);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'compressed.zip';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.getElementById('result').textContent = 'File compressed successfully!';
+            } catch (err) {
+                document.getElementById('result').textContent = 'Error during compression!';
+            }
+        });
+
+        document.getElementById('decompressForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('compressedFile');
+            if (!fileInput.files.length) return;
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/decompress', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.blob();
+                const url = window.URL.createObjectURL(result);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'decompressed_file';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.getElementById('result').textContent = 'File decompressed successfully!';
+            } catch (err) {
+                document.getElementById('result').textContent = 'Error during decompression!';
+            }
+        });
+    </script>
+</body>
+</html>
